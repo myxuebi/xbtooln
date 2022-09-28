@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 ######
+#脚本网站:shell.xb6868.com
+#论坛:bbs.xb6868.com
+#github:https://github.com/myxuebi/xbtooln
+#shell_url="https://raw.githubusercontent.com/myxuebi/xbtooln/master/files"
+shell_url="shell.xb6868.com/xbtool"
+######
 Y="\e[33m"
 G="\e[32m"
 R="\e[31m"
@@ -161,7 +167,7 @@ echo "nameserver 114.114.114.114
 nameserver 114.114.115.115" >>.${proot_system}-${proot_ver}/etc/resolv.conf
 echo "$(uname -a | sed 's/Android/Xbtooln/g')" >>.${proot_system}-${proot_ver}/etc/proc/version
 rm proc.tar.gz
-wget https://shell.xb6868.com/xbtool/proc.tar.gz -t 4
+wget https://${shell_url}/proc.tar.gz -t 4
 wget_check
 tar zxvf proc.tar.gz -C .${proot_system}-${proot_ver}/etc/proc/
 rm rootfs.tar.xz proc.tar.gz
