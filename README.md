@@ -4,6 +4,8 @@
 
 食用方法:
 
+*如果您是在linux或者容器环境运行的脚本，请用root用户运行，termux不需要*
+
 ### 自建服务器版本：
 ```
 bash -c "$(curl https://shell.xb6868.com/xbtool/xbtooln.sh)"
