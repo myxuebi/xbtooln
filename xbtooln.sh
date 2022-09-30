@@ -3,8 +3,8 @@
 #脚本网站:shell.xb6868.com
 #论坛:bbs.xb6868.com
 #github:https://github.com/myxuebi/xbtooln
-shell_url="https://raw.githubusercontent.com/myxuebi/xbtooln/master/files"
-#shell_url="shell.xb6868.com/xbtool"
+#shell_url="https://raw.githubusercontent.com/myxuebi/xbtooln/master/files"
+shell_url="shell.xb6868.com/xbtool"
 ######
 Y="\e[33m"
 G="\e[32m"
@@ -42,7 +42,11 @@ fi
 version(){
 echo "beta 0.0.1
 只有基础termux功能
-2022/9/1"
+2022/9/1
+
+2022/9/30
+beta 0.0.2
+修复已知bug"
 }
 ######
 wget_check(){
@@ -132,8 +136,12 @@ case $input in
 			read enter
 			termux ;;
 		2)am start mqqopensdkapi://bizAgent/qm/qr?url=https%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Fk%3DsggIpVFslC89hhAN9SIke6-5nDYOQytZ%26jump_from%3D%26auth%3D%26app_name%3D%26authSig%3DF4hbz11Ha0k86L%2B4u97r0O6iUpJGPoExq8o3LbvCjFUof3YBRzTRkaCeHiUE43LF%26source_id%3D3_40001
+			echo "如果termux没有自动跳转，请手动加入qq群，群号：769436389"
+			sleep 5
 			termux ;;
 		3)am start -a android.intent.action.VIEW -d https://bbs.xb6868.com/
+			echo "如果没有自动跳转，请手动访问https://bbs.xb6868.com/"
+			sleep 4
 			termux ;;
 		4)termux ;;
 		*)exit ;;
@@ -186,7 +194,7 @@ sleep 3
 case $proot_system in
 	ubuntu | debian)apt update
 	                apt install apt-transport-https
-	                perln=$(ls /usr/bin | grep perl)
+	                perln=$(ls /usr/bin | grep perl | grep "[0-9]$")
 	                ln -s /usr/bin/$pern /usr/bin/perl
 	                apt install ca-certificates -y
 	                sed -i 's/http/https/g' /etc/apt/sources.list
@@ -422,7 +430,9 @@ pulseaudio --start >/dev/null 2>&1
 tigervncserver :1" >>/usr/bin/start-vnc
 fi
 chmod 777 /usr/bin/start-vnc
-dialog --title "info" --msgbox "安装已完成，输入start-vnc启动vnc"
+echo "安装已完成，输入start-vnc启动vnc"
+echo -e "${G}按回车键继续${E}"
+read enter
 app_install
 }
 ######
