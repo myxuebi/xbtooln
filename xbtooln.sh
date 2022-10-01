@@ -3,8 +3,8 @@
 #脚本网站:shell.xb6868.com
 #论坛:bbs.xb6868.com
 #github:https://github.com/myxuebi/xbtooln
-#shell_url="https://raw.githubusercontent.com/myxuebi/xbtooln/master/files"
-shell_url="https://shell.xb6868.com/xbtool"
+shell_url="https://raw.githubusercontent.com/myxuebi/xbtooln/master/files"
+#shell_url="https://shell.xb6868.com/xbtool"
 ######
 Y="\e[33m"
 G="\e[32m"
