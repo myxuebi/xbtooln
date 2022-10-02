@@ -3,8 +3,8 @@
 #脚本网站:shell.xb6868.com
 #论坛:bbs.xb6868.com
 #github:https://github.com/myxuebi/xbtooln
-shell_url="https://raw.githubusercontent.com/myxuebi/xbtooln/master/files"
-#shell_url="https://shell.xb6868.com/xbtool"
+#shell_url="https://raw.githubusercontent.com/myxuebi/xbtooln/master/files"
+shell_url="https://shell.xb6868.com/xbtool"
 ######
 Y="\e[33m"
 G="\e[32m"
@@ -338,7 +338,7 @@ ications/chromium-browser.desktop
 	  app_install ;;
         2)case $arch in
 		aarch64)dialog --title "yes/no" --yesno "安装wine会安装box64、box86，wine\n安装后可能会导致兼容性或系统错误，是否继续？" 0 0
-		if [ $? = 0];then
+		if [ $? = 0 ];then
 			sleep 0.1
 		else
 			debian
