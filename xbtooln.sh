@@ -3,8 +3,8 @@
 #脚本网站:shell.xb6868.com
 #论坛:bbs.xb6868.com
 #github:https://github.com/myxuebi/xbtooln
-shell_url="https://raw.githubusercontent.com/myxuebi/xbtooln/master/files"
-#shell_url="https://shell.xb6868.com/xbtool"
+#shell_url="https://raw.githubusercontent.com/myxuebi/xbtooln/master/files"
+shell_url="https://shell.xb6868.com/xbtool"
 ######
 Y="\e[33m"
 G="\e[32m"
@@ -352,7 +352,7 @@ ications/chromium-browser.desktop
 		esac
 		dpkg --add-architecture armhf && apt update
 		apt install zenity:armhf libstdc++6:armhf gcc-arm-linux-gnueabihf mesa*:armhf libasound*:armhf -y
-		apt install cmake build-essential -y
+		apt install git cmake build-essential -y
 		git_check(){
 		for i in box64 box86
 		do if [ -d $i ];then
@@ -364,6 +364,7 @@ ications/chromium-browser.desktop
 			git_check
 		fi;done
 		}
+		git_check
 		cd box86 && mkdir build && cd build &&cmake .. -DRPI4ARM64=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo; make -j4 && make install
 		cd && cd box64 && mkdir build; cd build; cmake .. -DARM_DYNAREC=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo; make -j$(nproc) && make install
 		cd && rm -rf box64 box86
