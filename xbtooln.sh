@@ -3,8 +3,8 @@
 #脚本网站:shell.xb6868.com
 #论坛:bbs.xb6868.com
 #github:https://github.com/myxuebi/xbtooln
-shell_url="https://raw.githubusercontent.com/myxuebi/xbtooln/master/files"
-#shell_url="https://shell.xb6868.com/xbtool"
+#shell_url="https://raw.githubusercontent.com/myxuebi/xbtooln/master/files"
+shell_url="https://shell.xb6868.com/xbtool"
 ######
 Y="\e[33m"
 G="\e[32m"
@@ -35,6 +35,7 @@ if cat .update.log | grep -q $update_date
 then
 	sleep 0.1
 else
+    echo "每日更新源..."
 	$update_pkg
 	echo "$update_date" >>.update.log
 fi
@@ -64,7 +65,7 @@ fi
 ######
 #系统判断及依赖安装 
 start(){
-echo -e "${R}警告！您使用的是初始beta 0.0.1版，功能很少，有bug${E}"
+echo -e "${R}警告！您使用的是初始beta 版本，功能很少，有bug${E}"
 sleep 3
 for i in gawk dialog curl wget pulseaudio proot unzip
 do if [ ! $(command -v $i) ];then
@@ -103,7 +104,7 @@ case $input in
 			exit ;;
 		        *)exit ;;
 		esac
-		echo "deb https://$mirror_url/termux/apt/termux-main stable main" >$PREFIX/etc/apt/sources.list
+		echo "deb https://$mirror_url/termux/apt/termux-main stable main" >>$PREFIX/etc/apt/sources.list
 		apt update
 		echo -e "${G}更换源已完成${E}"
 		sleep 3
@@ -199,7 +200,7 @@ case $proot_system in
 	ubuntu | debian)apt update
 	                apt install apt-transport-https
 	                perln=$(ls /usr/bin | grep perl | grep "[0-9]$")
-	                ln -s /usr/bin/$pern /usr/bin/perl
+	                ln -s /usr/bin/$perln /usr/bin/perl
 	                apt install ca-certificates -y
 	                sed -i 's/http/https/g' /etc/apt/sources.list
 	                apt update
@@ -306,8 +307,8 @@ case $input in
 			     exit ;;
 	     esac
 	     apt update
-	     perln=$(ls /usr/bin | grep perl)
-	     ln -s /usr/bin/$pern /usr/bin/perl
+	     perln=$(ls /usr/bin | grep perl | grep "[0-9]$")
+	     ln -s /usr/bin/$perln /usr/bin/perl
 	     apt install ca-certificates
 	     sed -i 's/http/https/g' /etc/apt/sources.list
 	     apt update
