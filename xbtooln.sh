@@ -3,8 +3,8 @@
 #脚本网站:shell.xb6868.com
 #论坛:bbs.xb6868.com
 #github:https://github.com/myxuebi/xbtooln
-shell_url="https://raw.githubusercontent.com/myxuebi/xbtooln/master/files"
-#shell_url="https://shell.xb6868.com/xbtool"
+#shell_url="https://raw.githubusercontent.com/myxuebi/xbtooln/master/files"
+shell_url="https://shell.xb6868.com/xbtool"
 ######
 Y="\e[33m"
 G="\e[32m"
@@ -46,7 +46,11 @@ echo "beta 0.0.1
 
 2022/9/30
 beta 0.0.2
-修复已知bug"
+修复已知bug
+
+2022/10/4
+beta 0.0.3
+新增electron功能，修复已知bug"
 }
 ######
 wget_check(){
@@ -62,7 +66,7 @@ fi
 start(){
 echo -e "${R}警告！您使用的是初始beta 0.0.1版，功能很少，有bug${E}"
 sleep 3
-for i in gawk dialog curl wget pulseaudio proot
+for i in gawk dialog curl wget pulseaudio proot unzip
 do if [ ! $(command -v $i) ];then
 	$install_pkg $i $yes
 fi done
@@ -236,6 +240,18 @@ exit
 }
 ######
 debian(){
+if (( $(id -u) == 0 )); then
+  sleep 0.1
+else
+  echo -e "\e[33m非root用户，为保障脚本完美运行，请使用root用户启动脚本\e[0m"
+  ）read -r -p "1)继续运行脚本 2)停止运行脚本 3)尝试使用root用户启动脚本 请选择：" input
+  case $input in
+	  1)sleep 0.1 ;;
+	  2)exit ;;
+	  3)sudo bash -c "$(curl ${shell_url}/xbtools.sh)"
+         exit ;;
+ esac
+fi
 system=$(cat /etc/os-release | grep ^ID | gawk 'NR==1' | gawk -F '=' '{print $2}')
 if [ $system = debian ];then
       codename=$(cat /etc/os-release | grep PRETTY | gawk -F '"' '{print $2}' | gawk -F "/" '{print $3}')
@@ -384,10 +400,8 @@ ications/chromium-browser.desktop
 	x86_64)apt install wine -y ;;
           esac
 	 app_install ;;
-        3)echo "此功能还没写好呢“
-		按回车键继续"
-		read enter
-		app_intsall ;;
+        3)sudo bash -c "$(curl ${shell_url}/electron.sh)"
+		debian ;;
 	4)gui_install ;;
 	*)debian ;;
 esac
