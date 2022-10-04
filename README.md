@@ -2,6 +2,8 @@
 ## 一个适用于termux和linux环境的便捷脚本
 此脚本带有tui界面
 
+兼容情况：支持arm64架构的termux环境，和x86_64 arm64的linux环境
+
 食用方法:
 
 *如果您是在linux或者容器环境运行的脚本，请用root用户运行，termux不需要*
