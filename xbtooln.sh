@@ -3,8 +3,8 @@
 #脚本网站:shell.xb6868.com
 #论坛:bbs.xb6868.com
 #github:https://github.com/myxuebi/xbtooln
-shell_url="https://raw.githubusercontent.com/myxuebi/xbtooln/master/files"
-#shell_url="https://shell.xb6868.com/xbtool"
+#shell_url="https://raw.githubusercontent.com/myxuebi/xbtooln/master/files"
+shell_url="https://shell.xb6868.com/xbtool"
 ######
 Y="\e[33m"
 G="\e[32m"
@@ -67,7 +67,7 @@ fi
 start(){
 echo -e "${R}警告！您使用的是初始beta 版本，功能很少，有bug${E}"
 sleep 3
-for i in gawk dialog curl wget pulseaudio proot unzip
+for i in gawk dialog curl wget pulseaudio unzip
 do if [ ! $(command -v $i) ];then
 	$install_pkg $i $yes
 fi done
@@ -134,7 +134,7 @@ case $input in
 		echo "done.."
 		sleep 3
 		termux ;;
-	5)input=$(dialog --title "About Xbtooln" --menu " " 0 0 0 1 更新日志 2 加入Q群 3 访问论坛 4 返回上级菜单 --output-fd 1)
+	5)input=$(dialog --title "About Xbtooln" --menu " " 0 0 0 1 更新日志 2 加入Q群 3 访问论坛 4 BUG反馈 5 返回上级菜单 --output-fd 1)
 		case $input in
 		1)version
 			echo 按回车键继续
@@ -148,7 +148,11 @@ case $input in
 			echo "如果没有自动跳转，请手动访问https://bbs.xb6868.com/"
 			sleep 4
 			termux ;;
-		4)termux ;;
+		4)am start -a android.intent.action.VIEW -d https://github.com/myxuebi/xbtooln/issues
+			echo "如果没有自动跳转，请手动访问https://github.com/myxuebi/xbtooln/issues"
+			sleep 5
+			termux ;;
+		5)termux ;;
 		*)exit ;;
 	esac
 esac
@@ -341,14 +345,11 @@ case $input in
 			       wget_check;
 	                  esac
 			  dpkg -i chromium*
-			  app_install ;;
-		[dD]ebian)apt install chromium-browser -y
-		        app_install ;;
+		[dD]ebian)apt install chromium -y
 	  esac
 	  dialog --title "yes/no" --yesno "是否启用--no-sandbox选项\n如果你是使用proot容器或者使用root用户登录的桌面请选择yes\n如果chromium无法正常启动请选择yes" 0 0
 	  if [ $? = 0 ];then
-	  sed -i '/Exec/s/chromium-browser/chromium-browser --no-sandbox/' /usr/share/appl
-ications/chromium-browser.desktop
+	  sed -i '/Exec/s/chromium-browser/chromium-browser --no-sandbox/' /usr/share/applications/chromium.desktop
 	  fi
 	  echo -e "${G}安装完成...${E}"
 	  sleep 3
