@@ -3,8 +3,8 @@
 #脚本网站:shell.xb6868.com
 #论坛:bbs.xb6868.com
 #github:https://github.com/myxuebi/xbtooln
-shell_url="https://raw.githubusercontent.com/myxuebi/xbtooln/master/files"
-#shell_url="https://shell.xb6868.com/xbtool"
+#shell_url="https://raw.githubusercontent.com/myxuebi/xbtooln/master/files"
+shell_url="https://shell.xb6868.com/xbtool"
 ######
 Y="\e[33m"
 G="\e[32m"
@@ -51,7 +51,12 @@ beta 0.0.2
 
 2022/10/4
 beta 0.0.3
-新增electron功能，修复已知bug"
+新增electron功能，修复已知bug
+
+2022/12/17
+beta 0.0.4
+修复已知bug
+优化chromium安装方式"
 }
 ######
 wget_check(){
@@ -249,7 +254,7 @@ if (( $(id -u) == 0 )); then
   sleep 0.1
 else
   echo -e "\e[33m非root用户，为保障脚本完美运行，请使用root用户启动脚本\e[0m"
-  ）read -r -p "1)继续运行脚本 2)停止运行脚本 3)尝试使用root用户启动脚本 请选择：" input
+  read -r -p "1)继续运行脚本 2)停止运行脚本 3)尝试使用root用户启动脚本 请选择：" input
   case $input in
 	  1)sleep 0.1 ;;
 	  2)exit ;;
@@ -334,23 +339,31 @@ input=$(dialog --title "App Install" --menu "选择你要安装的软件" 0 0 0 
 case $input in
 	1)case $system in
 		[Uu]buntu)apt install xdg-utils -y
-		          case $arch in
-		       aarch64)wget https://mirrors.ustc.edu.cn/ubuntu-ports/pool/universe/c/chromium-browser/chromium-browser_104.0.5112.101-0ubuntu0.18.04.1_arm64.deb -t 4
-			       wget_check
-			       wget https://mirrors.ustc.edu.cn/ubuntu-ports/pool/universe/c/chromium-browser/chromium-codecs-ffmpeg_104.0.5112.101-0ubuntu0.18.04.1_arm64.deb -t 4
-			       wget_check ;;
-		       x86_64)wget https://mirrors.ustc.edu.cn/ubuntu/pool/universe/c/chromium-browser/chromium-browser_104.0.5112.101-0ubuntu0.18.04.1_amd64.deb -t 4
-			       wget_check
-			       wget https://mirrors.ustc.edu.cn/ubuntu/pool/universe/c/chromium-browser/chromium-codecs-ffmpeg_104.0.5112.101-0ubuntu0.18.04.1_amd64.deb -t 4 ;
-			       wget_check;
-	                  esac
-			  dpkg -i chromium*
+		          if [ $arch = aarch64 ]; then
+				  arch1=arm64
+			  fi
+			  if [ $arch = x86_64 ]; then
+				  arch1=amd64
+			  fi
+		          cversion=$(curl https://mirrors.ustc.edu.cn/ubuntu/pool/universe/c/chromium-browser/ | grep '^<a' | grep browser | gawk -F '_' '{print $2}' | gawk -F '-' '{print $1}' | grep '[0-9]$' | sort -g | awk 'END {print}')
+			       uversion=$(curl https://mirrors.ustc.edu.cn/ubuntu/pool/universe/c/chromium-browser/ | grep '^<a' | grep browser | gawk -F '_' '{print $2}' | grep 108.0.5359.71 | gawk -F '-' '{print $2}' | gawk 'NR==1')
+			       for i in chromium-browser-l10n_${cversion}-${uversion}_all.deb
+			       do wget https://mirrors.ustc.edu.cn/ubuntu/pool/universe/c/chromium-browser/$i -t 4
+				       wget_check
+				       dpkg -i $i
+				       rm $i
+			       done
+			      apt --fix-broken install -y
+			      dialog --title "是否启用nosandbox" --yesno "是否启用--no-sandbox选项\n如果你是使用proot容器或者使用root用户登录的桌面请选择yes\n如果chromium无法正常启动请选择yes" 0 0
+			      if [ $? = 0 ];then
+			      sed -i '/Exec/s/chromium-browser/chromium-browser --no-sandbox/' /usr/share/applications/chromium-browser.desktop
+			      fi ;;
 		[dD]ebian)apt install chromium -y
+			dialog --title "yes/no" --yesno "是否启用--no-sandbox选项\n如果你是使用proot容器或者使用root用户登录的桌面请选择yes\n如果chromium无法正常启动请选择yes" 0 0
+			if [ $? = 0 ];then
+			sed -i '/Exec/s/chromium/chromium --no-sandbox/' /usr/share/applications/chromium.desktop
+			fi ;;
 	  esac
-	  dialog --title "yes/no" --yesno "是否启用--no-sandbox选项\n如果你是使用proot容器或者使用root用户登录的桌面请选择yes\n如果chromium无法正常启动请选择yes" 0 0
-	  if [ $? = 0 ];then
-	  sed -i '/Exec/s/chromium-browser/chromium-browser --no-sandbox/' /usr/share/applications/chromium.desktop
-	  fi
 	  echo -e "${G}安装完成...${E}"
 	  sleep 3
 	  app_install ;;
