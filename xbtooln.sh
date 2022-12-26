@@ -3,8 +3,8 @@
 #脚本网站:shell.xb6868.com
 #论坛:bbs.xb6868.com
 #github:https://github.com/myxuebi/xbtooln
-shell_url="https://raw.githubusercontent.com/myxuebi/xbtooln/master/files"
-#shell_url="https://shell.xb6868.com/xbtool"
+#shell_url="https://raw.githubusercontent.com/myxuebi/xbtooln/master/files"
+shell_url="https://shell.xb6868.com/xbtool/files"
 ######
 Y="\e[33m"
 G="\e[32m"
@@ -56,7 +56,12 @@ beta 0.0.3
 2022/12/17
 beta 0.0.4
 修复已知bug
-优化chromium安装方式"
+优化chromium安装方式
+
+2022/12/26
+beta 0.0.5
+优化容器安装方式
+增加chroot容器安装支持"
 }
 ######
 wget_check(){
@@ -96,7 +101,7 @@ esac
 }
 ######
 termux(){
-input=$(dialog --title "Xbtooln Menu" --menu "选择一项" 0 0 0 1 termux换源 2 termux备份/恢复选项 3 Proot安装 4 二维码生成 5 关于脚本 --output-fd 1)
+input=$(dialog --title "Xbtooln Menu" --menu "选择一项" 0 0 0 1 termux换源 2 termux备份/恢复选项 3 Linux容器安装 4 二维码生成 5 关于脚本 --output-fd 1)
 case $input in
 	1)input=$(dialog --title "Mirror list" --menu "选择一个源地址" 0 0 0 1 北外源bfsu 2 清华源tuna 3 中科大源ustc 4 更多源选项-termux自带 5 返回上级菜单 --output-fd 1)
 		case $input in
@@ -133,7 +138,12 @@ case $input in
 		3)termux
 		exit ;;
 	esac ;;
-        3)proot ;;
+        3)input=$(dialog --title "Vessel Install" --menu "选择您要安装的容器类型\nchroot容器需要root权限" 0 0 0 1 Chroot 2 Proot 3 返回上级菜单 --output-fd 1)
+		case $input in
+			1)Chroot ;;
+			2)Proot ;;
+			*)termux ;;
+		esac ;;
 	4)test=$(dialog --title "QRCode" --inputbox "输入您要转换成二维码的内容（网址要带https://)：" 0 0 0 --output-fd 1)
 		echo "${test}" |curl -F-=\<- qrenco.de
 		echo "done.."
@@ -163,36 +173,43 @@ case $input in
 esac
 }
 ######
-#Proot安装
-proot(){
-proot_system=$(dialog --title "Proot Install" --menu "选择你要安装的Proot容器" 0 0 0 ubuntu 乌班图 debian 致力于自由 archlinux YYDS！ --output-fd 1)
+#容器安装
+vessel(){
+proot_system=$(dialog --title "$vessel_ Install" --menu "选择你要安装的Proot容器" 0 0 0 ubuntu 乌班图 debian 致力于自由 archlinux YYDS！ --output-fd 1)
+ver=$(curl https://mirrors.bfsu.edu.cn/lxc-images/images/${proot_system}/ | gawk -F ">" '{print $3}' | grep title | gawk '{print $2}' | gawk -F '"' '{print $2}' | sed 's/\///')
+for i in cosmic disco eoan groovy hirstue trusty
+do ver=$(echo "$ver" | sed "/^$i/d")
+done
+ver=$(echo "$ver" | cat -n | gawk '{print $2,$1}')
 case $proot_system in
-	ubuntu)proot_ver=$(dialog --title "Proot Install" --menu "选择你要安装的系统" 0 0 0 bionic 1 focal 2 impish 3 jammy 4 hirstue 5 trusty 6 xenial 7 --output-fd 1) ;;
-	debian)proot_ver=$(dialog --title "Proot Install" --menu "选择你要安装的系统" 0 0 0 sid 1 bullseye 2 testing 3 buster 4 strecth 5 jessie 6 --output-fd 1) ;;
+	ubuntu | debian)proot_ver=$(dialog --title "$vessel_ Install" --menu "选择一个版本安装容器" 0 0 0 $ver --output-fd 1) ;;
 	archlinux)proot_ver="current" ;;
 	*)exit ;;
 esac
 if [ ! $(echo "$proot_ver") ];then
 	exit
 fi
-if [ ! $(command -v proot) ];then
-     apt install proot -y
+if [ -e .${proot_system}-${proot_ver} ];then
+	echo -e "你已安装过此系统，不可再次安装"
+	exit
 fi
+#for i in cosmic disco eoan groovy hirstue trusty
+#do	if [ $proot_ver = $i ]; then
+#		dialog --title Error --msgbox "暂不支持此版本\n不支持的版本有：cosmic disco eoan groovy hirstue trusty" 0 0
+#		vessel
+#		exit
+#	fi
+#done	
 DOWN_LINE=$(curl https://mirrors.bfsu.edu.cn/lxc-images/images/${proot_system}/${proot_ver}/arm64/default/ | gawk '{print $3}' | tail -n 3 | head -n 1 | gawk -F '"' '{print $2}' | gawk -F '/' '{print $1}')
 rm rootfs.tar.xz
 wget https://mirrors.bfsu.edu.cn/lxc-images/images/${proot_system}/${proot_ver}/arm64/default/${DOWN_LINE}/rootfs.tar.xz -t 4
 wget_check
-mkdir -p .${proot_system}-${proot_ver}/etc/proc
+mkdir .${proot_system}-${proot_ver}
 tar xvf rootfs.tar.xz -C .${proot_system}-${proot_ver}
+rm rootfs.tar.xz
 rm .${proot_system}-${proot_ver}/etc/resolv.conf
 echo "nameserver 114.114.114.114
 nameserver 114.114.115.115" >>.${proot_system}-${proot_ver}/etc/resolv.conf
-echo "$(uname -a | sed 's/Android/Xbtooln/g')" >>.${proot_system}-${proot_ver}/etc/proc/version
-rm proc.tar.gz
-wget ${shell_url}/proc.tar.gz -t 4
-wget_check
-tar zxvf proc.tar.gz -C .${proot_system}-${proot_ver}/etc/proc/
-rm rootfs.tar.xz proc.tar.gz
 case $proot_system in
      ubuntu)sed -i 's/ports.ubuntu.com/mirrors.ustc.edu.cn/g' .${proot_system}-${proot_ver}/etc/apt/sources.list ;;
 	 debian)sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' .${proot_system}-${proot_ver}/etc/apt/sources.list ;;
@@ -203,8 +220,6 @@ esac
 echo ". run.sh" >>.${proot_system}-${proot_ver}/etc/profile
 echo "proot_system=${proot_system}" >>.${proot_system}-${proot_ver}/root/run.sh
 cat >>.${proot_system}-${proot_ver}/root/run.sh<<-'eof'
-echo "开始配置系统"
-sleep 3
 case $proot_system in
 	ubuntu | debian)apt update
 	                apt install apt-transport-https
@@ -216,7 +231,8 @@ case $proot_system in
 	                touch ${HOME}/.hushlogin
 			apt install vim fonts-wqy-zenhei tar pulseaudio curl wget gawk whiptail locales busybox -y
              mv /var/lib/dpkg/info/ /var/lib/dpkg/info_old/&&mkdir /var/lib/dpkg/info/&&apt-get update&&apt-get -f install&&mv /var/lib/dpkg/info/* /var/lib/dpkg/info_old/&&mv /var/lib/dpkg/info /var/lib/dpkg/info_back&&mv /var/lib/dpkg/info_old/ /var/lib/dpkg/info
-		apt install ;;
+		apt install
+		yes | apt reinstall sudo;;
 		archlinux)chmod -R 755 /etc
 			chmod 440 /etc/sudoers
 			chmod -R 755 /usr
@@ -224,6 +240,259 @@ case $proot_system in
 			sed -i 's/C/zh_CN.UTF-8/g' /etc/locale.conf
 			pacman -Sy curl wget tar pulseaudio curl gawk libnewt dialog wqy-zenhei vim nano busybox --noconfirm ;;
 esac
+eof
+}
+######
+#Chroot安装
+Chroot(){
+vessel_="Chroot"
+apt install busybox tsu -y
+if [ $(sudo id -u) -ne 0 ];then
+	echo "未检测到root权限，操作结束"
+fi
+CREATE_USER=$(dialog --title "请输入用户名" --inputbox "请输入你要创建普通用户的用户名\n必须输入，且输入英文，否则可能出现异常" 0 0 0 --output-fd 1)
+if [ ! $(echo $CREATE_USER) ];then
+	echo -e "$R请输入一个用户名，否则安装无法继续$E"
+	exit
+fi
+vessel
+sed -i '1i\echo "开始配置系统"\nsleep 3\nbash auth-ad.sh' .${proot_system}-${proot_ver}/root/run.sh
+sed -i "1i\export CREATE_USER=$CREATE_USER" .${proot_system}-${proot_ver}/root/run.sh
+cat >>.${proot_system}-${proot_ver}/root/auth-ad.sh<<-'eof'
+groupadd -g 0 AID_ROOT
+groupadd -g 1 AID_DAEMON
+groupadd -g 2 AID_BIN
+groupadd -g 3 AID_SYS
+groupadd -g 1000 AID_SYSTEM
+groupadd -g 1001 AID_RADIO
+groupadd -g 1002 AID_BLUETOOTH
+groupadd -g 1003 AID_GRAPHICS
+groupadd -g 1004 AID_INPUT
+groupadd -g 1005 AID_AUDIO
+groupadd -g 1006 AID_CAMERA
+groupadd -g 1007 AID_LOG
+groupadd -g 1008 AID_COMPASS
+groupadd -g 1009 AID_MOUNT
+groupadd -g 1010 AID_WIFI
+groupadd -g 1011 AID_ADB
+groupadd -g 1012 AID_INSTALL
+groupadd -g 1013 AID_MEDIA
+groupadd -g 1014 AID_DHCP
+groupadd -g 1015 AID_SDCARD_RW
+groupadd -g 1016 AID_VPN
+groupadd -g 1017 AID_KEYSTORE
+groupadd -g 1018 AID_USB
+groupadd -g 1019 AID_DRM
+groupadd -g 1020 AID_MDNSR
+groupadd -g 1021 AID_GPS
+groupadd -g 1022 AID_UNUSED1
+groupadd -g 1023 AID_MEDIA_RW
+groupadd -g 1024 AID_MTP
+groupadd -g 1025 AID_UNUSED2
+groupadd -g 1026 AID_DRMRPC
+groupadd -g 1027 AID_NFC
+groupadd -g 1028 AID_SDCARD_R
+groupadd -g 1029 AID_CLAT
+groupadd -g 1030 AID_LOOP_RADIO
+groupadd -g 1031 AID_MEDIA_DRM
+groupadd -g 1032 AID_PACKAGE_INFO
+groupadd -g 1033 AID_SDCARD_PICS
+groupadd -g 1034 AID_SDCARD_AV
+groupadd -g 1035 AID_SDCARD_ALL
+groupadd -g 1036 AID_LOGD
+groupadd -g 1037 AID_SHARED_RELRO
+groupadd -g 1038 AID_DBUS
+groupadd -g 1039 AID_TLSDATE
+groupadd -g 1040 AID_MEDIA_EX
+groupadd -g 1041 AID_AUDIOSERVER
+groupadd -g 1042 AID_METRICS_COLL
+groupadd -g 1043 AID_METRICSD
+groupadd -g 1044 AID_WEBSERV
+groupadd -g 1045 AID_DEBUGGERD
+groupadd -g 1046 AID_MEDIA_CODEC
+groupadd -g 1047 AID_CAMERASERVER
+groupadd -g 1048 AID_FIREWALL
+groupadd -g 1049 AID_TRUNKS
+groupadd -g 1050 AID_NVRAM
+groupadd -g 1051 AID_DNS
+groupadd -g 1052 AID_DNS_TETHER
+groupadd -g 1053 AID_WEBVIEW_ZYGOTE
+groupadd -g 1054 AID_VEHICLE_NETWORK
+groupadd -g 1055 AID_MEDIA_AUDIO
+groupadd -g 1056 AID_MEDIA_VIDEO
+groupadd -g 1057 AID_MEDIA_IMAGE
+groupadd -g 1058 AID_TOMBSTONED
+groupadd -g 1059 AID_MEDIA_OBB
+groupadd -g 1060 AID_ESE
+groupadd -g 1061 AID_OTA_UPDATE
+groupadd -g 1062 AID_AUTOMOTIVE_EVS
+groupadd -g 1063 AID_LOWPAN
+groupadd -g 1064 AID_HSM
+groupadd -g 1065 AID_RESERVED_DISK
+groupadd -g 1066 AID_STATSD
+groupadd -g 1067 AID_INCIDENTD
+groupadd -g 1068 AID_SECURE_ELEMENT
+groupadd -g 1069 AID_LMKD
+groupadd -g 1070 AID_LLKD
+groupadd -g 1071 AID_IORAPD
+groupadd -g 1072 AID_GPU_SERVICE
+groupadd -g 1073 AID_NETWORK_STACK
+groupadd -g 1074 AID_GSID
+groupadd -g 1075 AID_FSVERITY_CERT
+groupadd -g 1076 AID_CREDSTORE
+groupadd -g 1077 AID_EXTERNAL_STORAGE
+groupadd -g 1078 AID_EXT_DATA_RW
+groupadd -g 1079 AID_EXT_OBB_RW
+groupadd -g 1080 AID_CONTEXT_HUB
+groupadd -g 1081 AID_VIRTUALIZATIONSERVICE
+groupadd -g 1082 AID_ARTD
+groupadd -g 1083 AID_UWB
+groupadd -g 1084 AID_THREAD_NETWORK
+groupadd -g 1085 AID_DICED
+groupadd -g 1086 AID_DMESGD
+groupadd -g 1087 AID_JC_WEAVER
+groupadd -g 1088 AID_JC_STRONGBOX
+groupadd -g 1089 AID_JC_IDENTITYCRED
+groupadd -g 1090 AID_SDK_SANDBOX
+groupadd -g 1091 AID_SECURITY_LOG_WRITER
+groupadd -g 1092 AID_PRNG_SEEDER
+groupadd -g 2000 AID_SHELL
+groupadd -g 2001 AID_CACHE
+groupadd -g 2002 AID_DIAG
+groupadd -g 2900 AID_OEM_RESERVED_START
+groupadd -g 2999 AID_OEM_RESERVED_END
+groupadd -g 3001 AID_NET_BT_ADMIN
+groupadd -g 3002 AID_NET_BT
+groupadd -g 3003 AID_INET
+groupadd -g 3004 AID_NET_RAW
+groupadd -g 3005 AID_NET_ADMIN
+groupadd -g 3006 AID_NET_BW_STATS
+groupadd -g 3007 AID_NET_BW_ACCT
+groupadd -g 3009 AID_READPROC
+groupadd -g 3010 AID_WAKELOCK
+groupadd -g 3011 AID_UHID
+groupadd -g 3012 AID_READTRACEFS
+groupadd -g 5000 AID_OEM_RESERVED_2_START
+groupadd -g 5999 AID_OEM_RESERVED_2_END
+groupadd -g 6000 AID_SYSTEM_RESERVED_START
+groupadd -g 6499 AID_SYSTEM_RESERVED_END
+groupadd -g 6500 AID_ODM_RESERVED_START
+groupadd -g 6999 AID_ODM_RESERVED_END
+groupadd -g 7000 AID_PRODUCT_RESERVED_START
+groupadd -g 7499 AID_PRODUCT_RESERVED_END
+groupadd -g 7500 AID_SYSTEM_EXT_RESERVED_START
+groupadd -g 7999 AID_SYSTEM_EXT_RESERVED_END
+groupadd -g 9997 AID_EVERYBODY
+groupadd -g 9998 AID_MISC
+groupadd -g 9999 AID_NOBODY
+groupadd -g 10000 AID_APP
+groupadd -g 10000 AID_APP_START
+groupadd -g 19999 AID_APP_END
+groupadd -g 20000 AID_CACHE_GID_START
+groupadd -g 29999 AID_CACHE_GID_END
+groupadd -g 30000 AID_EXT_GID_START
+groupadd -g 39999 AID_EXT_GID_END
+groupadd -g 40000 AID_EXT_CACHE_GID_START
+groupadd -g 49999 AID_EXT_CACHE_GID_END
+groupadd -g 50000 AID_SHARED_GID_START
+groupadd -g 59999 AID_SHARED_GID_END
+groupadd -g 65534 AID_OVERFLOWUID
+groupadd -g 20000 AID_SDK_SANDBOX_PROCESS_START
+groupadd -g 29999 AID_SDK_SANDBOX_PROCESS_END
+groupadd -g 90000 AID_ISOLATED_START
+groupadd -g 99999 AID_ISOLATED_END
+groupadd -g 100000 AID_USER
+groupadd -g 100000 AID_USER_OFFSET
+usermod -g 3003 -G 3003,3004 -a _apt
+useradd -m ${CREATE_USER} 
+sed -i /${CREATE_USER}/s/sh/bash/ /etc/passwd
+echo "设置${CREATE_USER}用户密码"
+passwd ${CREATE_USER}
+echo "设置root用户密码"
+passwd
+chmod 755 /
+chmod 755 /bin /usr /home /media /opt /sbin /srv /tmp /var /boot /etc /lib /mnt /run /proc /sys /dev
+chmod 755 -R /usr
+chmod 755 /etc/bash.bashrc
+chmod 644 /etc/passwd
+chmod 755 /etc/profile
+for i in root ${CREATE_USER}
+do usermod -a -G AID_ROOT,AID_DAEMON,AID_BIN,AID_SYS,AID_SYSTEM,AID_RADIO,AID_BLUETOOTH,AID_GRAPHICS,AID_INPUT,AID_AUDIO,AID_CAMERA,AID_LOG,AID_COMPASS,AID_MOUNT,AID_WIFI,AID_ADB,AID_INSTALL,AID_MEDIA,AID_DHCP,AID_SDCARD_RW,AID_VPN,AID_KEYSTORE,AID_USB,AID_DRM,AID_MDNSR,AID_GPS,AID_UNUSED1,AID_MEDIA_RW,AID_MTP,AID_UNUSED2,AID_DRMRPC,AID_NFC,AID_SDCARD_R,AID_CLAT,AID_LOOP_RADIO,AID_MEDIA_DRM,AID_PACKAGE_INFO,AID_SDCARD_PICS,AID_SDCARD_AV,AID_SDCARD_ALL,AID_LOGD,AID_SHARED_RELRO,AID_DBUS,AID_TLSDATE,AID_MEDIA_EX,AID_AUDIOSERVER,AID_METRICS_COLL,AID_METRICSD,AID_WEBSERV,AID_DEBUGGERD,AID_MEDIA_CODEC,AID_CAMERASERVER,AID_FIREWALL,AID_TRUNKS,AID_NVRAM,AID_DNS,AID_DNS_TETHER,AID_WEBVIEW_ZYGOTE,AID_VEHICLE_NETWORK,AID_MEDIA_AUDIO,AID_MEDIA_VIDEO,AID_MEDIA_IMAGE,AID_TOMBSTONED,AID_MEDIA_OBB,AID_ESE,AID_OTA_UPDATE,AID_AUTOMOTIVE_EVS,AID_LOWPAN,AID_HSM,AID_RESERVED_DISK,AID_STATSD,AID_INCIDENTD,AID_SECURE_ELEMENT,AID_LMKD,AID_LLKD,AID_IORAPD,AID_GPU_SERVICE,AID_NETWORK_STACK,AID_GSID,AID_FSVERITY_CERT,AID_CREDSTORE,AID_EXTERNAL_STORAGE,AID_EXT_DATA_RW,AID_EXT_OBB_RW,AID_CONTEXT_HUB,AID_VIRTUALIZATIONSERVICE,AID_ARTD,AID_UWB,AID_THREAD_NETWORK,AID_DICED,AID_DMESGD,AID_JC_WEAVER,AID_JC_STRONGBOX,AID_JC_IDENTITYCRED,AID_SDK_SANDBOX,AID_SECURITY_LOG_WRITER,AID_PRNG_SEEDER,AID_SHELL,AID_CACHE,AID_DIAG,AID_OEM_RESERVED_START,AID_OEM_RESERVED_END,AID_NET_BT_ADMIN,AID_NET_BT,AID_INET,AID_NET_RAW,AID_NET_ADMIN,AID_NET_BW_STATS,AID_NET_BW_ACCT,AID_READPROC,AID_WAKELOCK,AID_UHID,AID_READTRACEFS,AID_OEM_RESERVED_2_START,AID_OEM_RESERVED_2_END,AID_SYSTEM_RESERVED_START,AID_SYSTEM_RESERVED_END,AID_ODM_RESERVED_START,AID_ODM_RESERVED_END,AID_PRODUCT_RESERVED_START,AID_PRODUCT_RESERVED_END,AID_SYSTEM_EXT_RESERVED_START,AID_SYSTEM_EXT_RESERVED_END,AID_EVERYBODY,AID_MISC,AID_NOBODY,AID_APP,AID_APP_START,AID_APP_END,AID_CACHE_GID_START,AID_CACHE_GID_END,AID_EXT_GID_START,AID_EXT_GID_END,AID_EXT_CACHE_GID_START,AID_EXT_CACHE_GID_END,AID_SHARED_GID_START,AID_SHARED_GID_END,AID_OVERFLOWUID,AID_SDK_SANDBOX_PROCESS_START,AID_SDK_SANDBOX_PROCESS_END,AID_ISOLATED_START,AID_ISOLATED_END,AID_USER,AID_USER_OFFSET $i
+done
+eof
+cat >>.${proot_system}-${proot_ver}/root/run.sh<<-'eof'
+echo "${CREATE_USER} ALL=(ALL:ALL) ALL" >> /etc/sudoers
+chown root:root /etc/sudo.conf -R
+chown -R root:root /bin/su
+chmod u+s /bin/su
+chown -R root:root /etc/sudoers.d
+sed -i /zh_CN/s/#// /etc/locale.gen
+locale-gen
+sed -i 's/. run.sh//g' /etc/profile
+echo "export LANG=zh_CN.UTF-8
+export PULSE_SERVER=127.0.0.1
+pulseaudio --start >/dev/null 2>&1" >>/etc/profile
+echo "配置已完成"
+eof
+echo "CREATE_USER=$CREATE_USER
+proot_system=${proot_system}
+proot_ver=${proot_ver}" >${proot_ver}-chroot.sh
+cat>>${proot_ver}-chroot.sh<<-'eof'
+#!/usr/bin/env bash
+unset LD_PRELOAD
+case $1 in
+	-remove)for i in .${proot_system}-${proot_ver}/proc .${proot_system}-${proot_ver}/dev/pts .${proot_system}-${proot_ver}/sys .${proot_system}-${proot_ver}/dev
+		do sudo umount $i
+		if [ $? = 0 ];then
+			sleep 0.1
+		else
+			echo 错误，无法取消挂载，请手动取消挂载然后手动执行rm -rf .${proot_system}-${proot_ver} ${proot_ver}-chroot.sh
+			exit
+		fi
+	        done
+		echo 即将开始删除容器，若发现异常，请立即按下Ctrl-c停止运行脚本，及时止损
+		echo 请确认所有挂载均已解除，若未解除请立即按下Ctrl-c停止运行脚本
+		sleep 5
+		sudo rm -rfv .${proot_system}-${proot_ver} ${proot_ver}-chroot.sh
+		echo 卸载完成 ;;
+	*)if [ ! $(sudo mount | grep termux) ];then
+	        for i in proc dev sys dev/pts
+		do sudo mount /$i .${proot_system}-${proot_ver}/$i
+		done
+		sudo mount -o remount,suid /data
+	fi
+		sudo $PREFIX/bin/busybox chroot .${proot_system}-${proot_ver}/ /bin/su - ${CREATE_USER} ;;
+esac
+eof
+if [ $proot_ver = current ];then
+    mv current-chroot.sh arch-chroot.sh
+    proot_ver="arch"
+fi
+chmod 777 ${proot_ver}-chroot.sh
+unset LD_PRELOAD
+sudo mount -o remount,suid /data
+for i in proc dev sys dev/pts
+do sudo mount /$i .${proot_system}-${proot_ver}/$i
+done
+sudo $PREFIX/bin/busybox chroot .${proot_system}-${proot_ver}/ /bin/su - root
+echo -e "${Y}输入./$proot_ver-chroot.sh可再次启动启动容器${E}
+输入./$proot_ver-chroot.sh -remove可卸载容器"
+}
+######
+#Proot安装
+Proot(){
+vessel_="Proot"
+apt install proot -y
+vessel
+sed -i '1i\echo "开始配置系统"\nsleep 3' .${proot_system}-${proot_ver}/root/run.sh
+mkdir -p .${proot_system}-${proot_ver}/etc/proc
+echo "$(uname -a | sed 's/Android/Xbtooln/g')" >>.${proot_system}-${proot_ver}/etc/proc/version
+rm proc.tar.gz
+wget ${shell_url}/proc.tar.gz -t 4
+wget_check
+tar zxvf proc.tar.gz -C .${proot_system}-${proot_ver}/etc/proc/
+rm rootfs.tar.xz proc.tar.gz
+cat >>.${proot_system}-${proot_ver}/root/run.sh<<-'eof'
 for i in ps pstree top uptime pkill egrep killall ifconfig
 do ln -sf /bin/busybox /bin/$i
 done
