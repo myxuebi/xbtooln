@@ -3,8 +3,8 @@
 #脚本网站:shell.xb6868.com
 #论坛:bbs.xb6868.com
 #github:https://github.com/myxuebi/xbtooln
-shell_url="https://raw.githubusercontent.com/myxuebi/xbtooln/master/files"
-#shell_url="https://shell.xb6868.com/xbtool/files"
+#shell_url="https://raw.githubusercontent.com/myxuebi/xbtooln/master/files"
+shell_url="https://shell.xb6868.com/xbtool/files"
 ######
 Y="\e[33m"
 G="\e[32m"
@@ -61,7 +61,7 @@ beta 0.0.4
 2022/12/26
 beta 0.0.5
 优化容器安装方式
-增加chroot容器安装支持"
+#增加chroot容器安装支持"
 }
 ######
 wget_check(){
@@ -138,9 +138,9 @@ case $input in
 		3)termux
 		exit ;;
 	esac ;;
-        3)input=$(dialog --title "Vessel Install" --menu "选择您要安装的容器类型\nchroot容器需要root权限" 0 0 0 1 Chroot 2 Proot 3 返回上级菜单 --output-fd 1)
+        3)input=$(dialog --title "Vessel Install" --menu "选择您要安装的容器类型\nchroot容器需要root权限" 0 0 0 2 Proot 3 返回上级菜单 --output-fd 1)
 		case $input in
-			1)Chroot ;;
+			#1)Chroot ;;
 			2)Proot ;;
 			*)termux ;;
 		esac ;;
