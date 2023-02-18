@@ -3,7 +3,7 @@
 ## 感谢支持，本项目停止维护
 新项目维护者：https://github.com/m1ngl
 新项目地址：https://github.com/m1ngl/xbtooln
-请期待大佬的杰作吧（其̶实̶是̶屎̶山̶雕̶花̶啦̶
+请期待大佬的杰作吧（
 
 ## 一个适用于termux和linux环境的便捷脚本
 此脚本带有tui界面
